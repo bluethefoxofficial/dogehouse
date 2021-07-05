@@ -3,7 +3,6 @@
 
 </p></a>
 <p align="center">
-  <strong>Taking voice conversations to the moon 🚀</strong>
 </p>
 <p align="center">
   <a href="https://discord.gg/wCbKBZF9cV">
@@ -24,9 +23,6 @@
 
 ---
 
-## Important DogeHouse Notice
-
-[I'm done with DogeHouse](https://www.youtube.com/watch?v=I8PkQgPiSq8)
 
 ## Structure
 
