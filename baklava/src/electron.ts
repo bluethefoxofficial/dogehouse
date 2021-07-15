@@ -9,8 +9,7 @@ import {
   Menu,
 } from "electron";
 import i18n from "i18next";
-import Backend from "i18next-node-fs-backend";
-import { autoUpdater } from "electron-updater";
+import Backend from "i18next-node-fs-backend";     
 import { exitApp, RegisterKeybinds } from "./utils/keybinds";
 
 import { HandleVoiceTray } from "./utils/tray";
@@ -18,7 +17,7 @@ import {
   ALLOWED_HOSTS,
   isLinux,
   isMac,
-  isWin,
+  isWin,  
   MENU_TEMPLATE,
 } from "./constants";
 import path from "path";
@@ -26,6 +25,9 @@ import { StartNotificationHandler } from "./utils/notifications";
 import { bWindowsType } from "./types";
 import electronLogger from "electron-log";
 import { startRPC } from "./utils/rpc";
+
+let mainUrlBase = "https://dogehouse.tv/" 
+let localUrlBase = "http://localhost:3000"
 
 let mainWindow: BrowserWindow;
 let tray: Tray;
@@ -42,12 +44,9 @@ let skipUpdateTimeout: NodeJS.Timeout;
 
 i18n.use(Backend);
 
-electronLogger.transports.file.level = "debug";
-autoUpdater.logger = electronLogger;
-// just in case we have to revert to a build
-autoUpdater.allowDowngrade = true;
+electronLogger.transports.file.level = "debug"; 
 
-if (isWin) app.setAppUserModelId("DogeHouse");
+if (isWin) app.setAppUserModelId("DogeHouse Reloaded");   
 
 async function localize() {
   await i18n.init({
@@ -91,7 +90,7 @@ function createMainWindow() {
     mainWindow.webContents.openDevTools();
   }
   mainWindow.loadURL(
-    __prod__ ? `https://dogehouse.tv/` : "http://localhost:3000"
+    __prod__ ? mainUrlBase : localUrlBase    
   );
 
   bWindows = {
@@ -200,11 +199,11 @@ function createMainWindow() {
 
 function createSplashWindow() {
   splash = new BrowserWindow({
-    width: 300,
-    height: 410,
+    width: 290,
+    height: 400,
     transparent: true,
     frame: false,
-    resizable: false,
+    resizable: true,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -235,11 +234,7 @@ if (!instanceLock) {
   app.on("ready", () => {
     localize().then(async () => {
       createSplashWindow();
-      if (!__prod__) skipUpdateCheck(splash);
-      if (__prod__ && !isLinux) await autoUpdater.checkForUpdates();
-      if (isLinux && __prod__) {
-        skipUpdateCheck(splash);
-      }
+      skipUpdateCheck(splash);
     });
   });
   app.on("second-instance", (event, argv, workingDirectory) => {
@@ -251,35 +246,6 @@ if (!instanceLock) {
   });
 }
 
-autoUpdater.on("update-available", (info) => {
-  splash.webContents.send("download", info);
-  // skip the update if it takes more than 1 minute
-  skipUpdateTimeout = setTimeout(() => {
-    skipUpdateCheck(splash);
-  }, 60000);
-});
-autoUpdater.on("download-progress", (progress) => {
-  let prog = Math.floor(progress.percent);
-  splash.webContents.send("percentage", prog);
-  splash.setProgressBar(prog / 100);
-  // stop timeout that skips the update
-  if (skipUpdateTimeout) {
-    clearTimeout(skipUpdateTimeout);
-  }
-});
-autoUpdater.on("update-downloaded", () => {
-  splash.webContents.send("relaunch");
-  // stop timeout that skips the update
-  if (skipUpdateTimeout) {
-    clearTimeout(skipUpdateTimeout);
-  }
-  setTimeout(() => {
-    autoUpdater.quitAndInstall();
-  }, 1000);
-});
-autoUpdater.on("update-not-available", () => {
-  skipUpdateCheck(splash);
-});
 app.on("window-all-closed", async () => {
   exitApp();
 });
